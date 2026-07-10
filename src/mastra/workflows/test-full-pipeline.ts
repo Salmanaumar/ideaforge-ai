@@ -7,8 +7,8 @@ async function main() {
 
   const result = await run.start({
     inputData: {
-      rawIdea: 'A UPI fraud-detection layer for small merchants that flags suspicious transactions in real time',
-    },
+      rawIdea: "an app that matches dog walkers with elderly pet owners in a neighborhood"
+    }
   })
 
   console.log('STATUS:', result.status)

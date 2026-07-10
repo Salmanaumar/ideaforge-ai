@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { searchMemory, storeMemory } from '../memory/embeddings'
 import { checkSafety } from '../safety/enkrypt-gate'
 import { tracedAgentCall } from '../observability/tracer'
+import { searchWeb } from '../tools/tavily-search' 
 
 const ideaIntakeStep = createStep({
   id: 'idea-intake',
@@ -31,13 +32,15 @@ const marketResearchStep = createStep({
     let result
     if (cached.length > 0 && cached[0].score > 0.75) {
       result = cached[0].payload as any
-    } else {
-      const agent = mastra.getAgentById('market-research-agent')
-      const response = await tracedAgentCall('market-research', () =>
-        agent.generate(`Industry: "${inputData.industry}", Problem: "${inputData.problemCategory}"`)
-      )
-      result = JSON.parse(response.text)
-      await storeMemory('market_cache', Date.now(), query, { industry: inputData.industry, ...result })
+      } else {
+        const liveContext = await searchWeb(`${inputData.industry} market trends ${inputData.problemCategory}`)
+        const agent = mastra.getAgentById('market-research-agent')
+        const prompt = liveContext
+          ? `Industry: "${inputData.industry}", Problem: "${inputData.problemCategory}"\n\nLive market context from recent web search:\n${liveContext}`
+          : `Industry: "${inputData.industry}", Problem: "${inputData.problemCategory}"`
+        const response = await tracedAgentCall('market-research', () => agent.generate(prompt))
+        result = JSON.parse(response.text)
+        await storeMemory('market_cache', Date.now(), query, { industry: inputData.industry, ...result })
     }
 
     return {
