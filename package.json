@@ -24,6 +24,15 @@
     "@mastra/loggers": "^1.2.0",
     "@mastra/memory": "^1.22.1",
     "@mastra/observability": "^1.15.2",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.220.0",
+    "@opentelemetry/sdk-node": "^0.220.0",
+    "@opentelemetry/sdk-trace-base": "^2.9.0",
+    "@opentelemetry/sdk-trace-node": "^2.9.0",
+    "@qdrant/js-client-rest": "^1.18.0",
+    "axios": "^1.18.1",
+    "dotenv": "^17.4.2",
+    "express-rate-limit": "^8.5.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {

@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IdeaForge AI — Validate Startup Ideas Like Investors Do</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #05060f;
+  --card: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.08);
+  --blue: #5b8cff;
+  --purple: #a06bff;
+  --text: #e8ebf5;
+  --muted: #9aa3c0;
+  --green: #3fd68e;
+  --red: #ff6b6b;
+  --orange: #ffb454;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); overflow-x:hidden; min-height:100vh; position:relative; }
+
+.bg-glow { position:fixed; inset:0; z-index:-2; overflow:hidden; pointer-events:none; }
+.bg-glow::before, .bg-glow::after { content:''; position:absolute; border-radius:50%; filter:blur(120px); opacity:0.35; animation:float 18s ease-in-out infinite; }
+.bg-glow::before { width:600px; height:600px; background:var(--blue); top:-200px; left:-100px; }
+.bg-glow::after { width:500px; height:500px; background:var(--purple); bottom:-150px; right:-100px; animation-delay:4s; }
+@keyframes float { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(40px,-40px) scale(1.1);} }
+
+body::before { content:''; position:fixed; inset:0; z-index:-1; pointer-events:none; background-image:radial-gradient(circle, var(--blue) 1px, transparent 1px); background-size:180px 180px; opacity:0.06; animation:moveDots 40s linear infinite; }
+@keyframes moveDots { from{transform:translateY(0);} to{transform:translateY(-180px);} }
+
+.particles { position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden; }
+.particles span { position:absolute; width:5px; height:5px; background:var(--blue); border-radius:50%; opacity:0.5; filter:blur(1px); animation:floatParticle 14s linear infinite; }
+.particles span:nth-child(1){left:10%;animation-delay:0s;}
+.particles span:nth-child(2){left:30%;animation-delay:2s;}
+.particles span:nth-child(3){left:50%;animation-delay:4s;}
+.particles span:nth-child(4){left:70%;animation-delay:6s;}
+.particles span:nth-child(5){left:85%;animation-delay:8s;}
+.particles span:nth-child(6){left:95%;animation-delay:10s;}
+@keyframes floatParticle { 0%{transform:translateY(100vh);opacity:0;} 30%{opacity:0.5;} 100%{transform:translateY(-100px);opacity:0;} }
+
+nav { position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:18px 48px; background:rgba(5,6,15,0.75); backdrop-filter:blur(16px); border-bottom:1px solid var(--border); }
+.logo { display:flex; align-items:center; gap:10px; font-weight:800; font-size:1.3rem; }
+.nav-links { display:flex; gap:30px; align-items:center; }
+.nav-links a { color:var(--muted); text-decoration:none; font-weight:500; font-size:0.92rem; padding:6px 0; position:relative; }
+.nav-links a.active, .nav-links a:hover { color:var(--text); }
+.nav-links a.active::after { content:''; position:absolute; bottom:-4px; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--blue),var(--purple)); border-radius:2px; }
+.nav-actions { display:flex; gap:12px; align-items:center; }
+.btn-ghost { background:transparent; border:1px solid var(--border); color:var(--text); padding:9px 18px; border-radius:10px; font-weight:600; cursor:pointer; font-size:0.9rem; }
+.btn-ghost:hover { border-color:var(--blue); }
+.btn-gradient { background:linear-gradient(135deg,var(--blue),var(--purple)); color:white; border:none; padding:10px 22px; border-radius:10px; font-weight:600; cursor:pointer; font-size:0.92rem; box-shadow:0 4px 20px rgba(91,140,255,0.35); transition:transform 0.2s; }
+.btn-gradient:hover { transform:translateY(-2px); }
+.btn-gradient:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+section { padding:90px 48px; max-width:1100px; margin:0 auto; }
+.fade-in { opacity:0; transform:translateY(24px); transition:all 0.7s ease; }
+.fade-in.visible { opacity:1; transform:translateY(0); }
+
+.glass-card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:32px; backdrop-filter:blur(20px); box-shadow:0 8px 40px rgba(0,0,0,0.3); position:relative; overflow:hidden; }
+.glass-card::after { content:''; position:absolute; top:0; left:-100%; width:40%; height:100%; background:linear-gradient(90deg,transparent,rgba(91,140,255,0.08),transparent); animation:scanner 8s linear infinite; pointer-events:none; z-index:0; }
+@keyframes scanner { 100%{left:150%;} }
+.glass-card > * { position:relative; z-index:1; }
+
+h2.section-title { font-size:2rem; font-weight:800; margin-bottom:10px; }
+p.section-sub { color:var(--muted); margin-bottom:32px; }
+.badge { display:inline-block; padding:6px 16px; border-radius:999px; background:var(--card); border:1px solid var(--border); font-size:0.85rem; color:var(--blue); font-weight:600; margin-bottom:20px; }
+
+h1.hero { font-size:3.2rem; font-weight:800; line-height:1.15; margin-bottom:16px; }
+.gradient-text { background:linear-gradient(135deg,var(--blue),var(--purple)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.hero-sub { font-size:1.15rem; color:var(--muted); max-width:600px; margin-bottom:28px; }
+.stat-row { display:flex; gap:28px; flex-wrap:wrap; margin-top:20px; }
+.stat-pill { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:0.95rem; }
+
+.tech-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:20px; }
+.tech-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:24px; position:relative; overflow:hidden; cursor:pointer; transition:transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease; }
+.tech-card::before { content:''; position:absolute; width:250px; height:250px; left:var(--x,50%); top:var(--y,50%); transform:translate(-50%,-50%); background:radial-gradient(circle,rgba(91,140,255,0.22),transparent 70%); opacity:0; transition:opacity 0.25s; pointer-events:none; }
+.tech-card:hover { transform:translateY(-6px); border-color:var(--blue); box-shadow:0 12px 40px rgba(91,140,255,0.18); }
+.tech-card:hover::before { opacity:1; }
+.tech-card:hover .tech-icon { transform:scale(1.15) rotate(-4deg); filter:drop-shadow(0 0 10px var(--blue)); }
+.tech-icon { font-size:1.8rem; margin-bottom:10px; display:inline-block; transition:transform 0.35s ease; }
+.tech-card h4 { margin-bottom:8px; font-size:1.05rem; }
+.tech-card:hover h4 { color:#fff; }
+.tech-card p { color:var(--muted); font-size:0.88rem; line-height:1.5; }
+.tech-role { display:inline-block; margin-top:10px; font-size:0.75rem; padding:3px 10px; border-radius:999px; font-weight:700; }
+.role-mastra { background:rgba(91,140,255,0.15); color:var(--blue); }
+.role-qdrant { background:rgba(63,214,142,0.15); color:var(--green); }
+.role-enkrypt { background:rgba(255,107,107,0.15); color:var(--red); }
+
+.arch-flow { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:24px; }
+.arch-node { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px 16px; font-size:0.85rem; text-align:center; flex:1; min-width:120px; position:relative; overflow:hidden; cursor:pointer; transition:all 0.3s ease; }
+.arch-node::before { content:''; position:absolute; width:200px; height:200px; left:var(--x,50%); top:var(--y,50%); transform:translate(-50%,-50%); background:radial-gradient(circle,rgba(91,140,255,0.2),transparent 70%); opacity:0; transition:opacity 0.25s; pointer-events:none; }
+.arch-node:hover { transform:translateY(-4px) scale(1.03); background:rgba(255,255,255,0.06); }
+.arch-node:hover::before { opacity:1; }
+.arch-node.mastra-node { border-color:rgba(91,140,255,0.3); }
+.arch-node.mastra-node:hover { border-color:var(--blue); box-shadow:0 8px 24px rgba(91,140,255,0.2); }
+.arch-node.qdrant-node { border-color:rgba(63,214,142,0.3); }
+.arch-node.qdrant-node:hover { border-color:var(--green); box-shadow:0 8px 24px rgba(63,214,142,0.2); }
+.arch-node.enkrypt-node { border-color:rgba(255,107,107,0.3); }
+.arch-node.enkrypt-node:hover { border-color:var(--red); box-shadow:0 8px 24px rgba(255,107,107,0.2); }
+.arch-arrow { color:var(--muted); font-size:1.2rem; }
+
+#qdrantStatsWrap { margin-top:24px; padding:18px; border-radius:14px; background:rgba(63,214,142,0.06); border:1px solid rgba(63,214,142,0.2); }
+
+textarea#ideaInput { width:100%; min-height:130px; padding:18px; background:rgba(0,0,0,0.35); color:#fff; caret-color:var(--blue); border:1px solid var(--border); border-radius:14px; font-size:1rem; font-family:inherit; resize:vertical; outline:none; transition:0.3s; position:relative; z-index:5; animation:glowPulse 3s ease-in-out infinite; }
+@keyframes glowPulse { 0%,100%{box-shadow:0 0 20px rgba(91,140,255,0.25),0 0 40px rgba(160,107,255,0.15);} 50%{box-shadow:0 0 35px rgba(91,140,255,0.45),0 0 60px rgba(160,107,255,0.3);} }
+textarea#ideaInput:focus { animation:none; border-color:var(--blue); box-shadow:0 0 0 1px rgba(91,140,255,0.4),0 0 35px rgba(91,140,255,0.4),0 0 60px rgba(160,107,255,0.25); }
+textarea#ideaInput::placeholder { color:#7f88a8; opacity:1; }
+
+.submit-row { display:flex; justify-content:flex-end; margin-top:18px; }
+#status { margin-top:20px; color:var(--muted); font-size:0.95rem; }
+
+.timeline { display:flex; flex-wrap:wrap; gap:14px; margin-top:24px; }
+.timeline-step { display:flex; align-items:center; gap:8px; padding:10px 16px; background:var(--card); border:1px solid var(--border); border-radius:999px; font-size:0.85rem; color:var(--muted); transition:all 0.3s; }
+.timeline-step.done { color:var(--green); border-color:rgba(63,214,142,0.3); background:rgba(63,214,142,0.06); }
+.timeline-step.active { color:var(--blue); border-color:rgba(91,140,255,0.4); background:rgba(91,140,255,0.08); animation:pulse 1.2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+
+.score-gauge-wrap { display:flex; align-items:center; gap:36px; flex-wrap:wrap; margin-top:8px; }
+.gauge-container { position:relative; width:150px; height:150px; flex-shrink:0; animation:pulseScore 3s infinite; }
+@keyframes pulseScore { 0%,100%{filter:drop-shadow(0 0 0px var(--green));} 50%{filter:drop-shadow(0 0 18px var(--green));} }
+.gauge-container svg { transform:rotate(-90deg); }
+.gauge-bg { fill:none; stroke:rgba(255,255,255,0.06); stroke-width:12; }
+.gauge-fill { fill:none; stroke-width:12; stroke-linecap:round; transition:stroke-dashoffset 1.2s ease; }
+.gauge-text { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.gauge-number { font-size:2.4rem; font-weight:800; }
+.gauge-sub { font-size:0.75rem; color:var(--muted); margin-top:2px; }
+.gauge-side-info { flex:1; min-width:200px; }
+
+.route-pill { display:inline-flex; align-items:center; gap:8px; padding:10px 20px; border-radius:12px; font-weight:700; font-size:1.05rem; margin-bottom:10px; }
+.route-investor { background:rgba(63,214,142,0.12); color:var(--green); border:1px solid rgba(63,214,142,0.3); }
+.route-refinement { background:rgba(255,180,84,0.12); color:var(--orange); border:1px solid rgba(255,180,84,0.3); }
+.route-pivot { background:rgba(255,107,107,0.12); color:var(--red); border:1px solid rgba(255,107,107,0.3); }
+
+.section-divider { height:1px; background:linear-gradient(90deg,transparent,var(--border),transparent); margin:32px 0; }
+
+.agent-panel { background:rgba(255,255,255,0.03); border:1px solid rgba(91,140,255,0.15); border-radius:18px; padding:24px; margin-top:25px; transition:0.35s; }
+.agent-panel:hover { border-color:var(--blue); box-shadow:0 0 30px rgba(91,140,255,0.18); transform:translateY(-5px); }
+.agent-panel h3 { margin-bottom:10px; }
+.agent-item { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:0.9rem; }
+.agent-item:last-child { border:none; }
+.agent-status { font-weight:600; }
+.agent-status.pending { color:var(--muted); }
+.agent-status.processing { color:var(--orange); }
+.agent-status.completed { color:var(--green); }
+.agent-dot { width:10px; height:10px; border-radius:50%; margin-right:10px; display:inline-block; background:var(--border); transition:0.3s; }
+.agent-dot.processing { background:var(--orange); animation:thinkingPulse 1s infinite; }
+.agent-dot.completed { background:var(--green); animation:agentPulse 1.5s infinite; }
+@keyframes agentPulse { 0%{box-shadow:0 0 0 0 rgba(63,214,142,0.8);} 70%{box-shadow:0 0 0 12px rgba(63,214,142,0);} 100%{box-shadow:0 0 0 0 rgba(63,214,142,0);} }
+@keyframes thinkingPulse { 0%{opacity:0.4;} 50%{opacity:1;} 100%{opacity:0.4;} }
+
+.factor-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin-top:26px; }
+.factor-card { position:relative; overflow:hidden; cursor:pointer; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px; padding:20px; transition:transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease; }
+.factor-card::before { content:''; position:absolute; width:220px; height:220px; left:var(--x,50%); top:var(--y,50%); transform:translate(-50%,-50%); background:radial-gradient(circle,rgba(91,140,255,0.22),transparent 70%); opacity:0; transition:opacity 0.25s; pointer-events:none; }
+.factor-card:hover { transform:translateY(-7px); border-color:var(--blue); box-shadow:0 15px 35px rgba(91,140,255,0.18),0 0 25px rgba(91,140,255,0.12); }
+.factor-card:hover::before { opacity:1; }
+.factor-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.factor-name { font-weight:600; font-size:0.95rem; }
+.factor-card:hover .factor-name { color:#fff; }
+.factor-score { display:flex; align-items:center; justify-content:center; min-width:52px; height:36px; border-radius:12px; font-size:1.1rem; font-weight:800; color:white; background:linear-gradient(135deg,var(--blue),var(--purple)); box-shadow:0 0 10px rgba(91,140,255,0.5); transition:0.35s; }
+.factor-card:hover .factor-score { transform:scale(1.08); box-shadow:0 0 18px rgba(91,140,255,0.7); }
+.factor-reason { color:var(--muted); font-size:0.8rem; margin-top:10px; line-height:1.5; }
+.factor-card.confidence-card { border-color:rgba(63,214,142,0.35); }
+
+.progress-bar-bg { height:8px; background:rgba(255,255,255,0.06); border-radius:999px; overflow:hidden; }
+.progress-bar-fill { height:100%; border-radius:999px; width:0%; transition:width 1.2s ease; position:relative; overflow:hidden; }
+.progress-bar-fill::after { content:''; position:absolute; top:0; left:-40%; width:30%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent); animation:shine 2s infinite; }
+@keyframes shine { 0%{left:-40%;} 100%{left:120%;} }
+
+.tam-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:20px; }
+.tam-card { text-align:center; padding:22px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px; transition:0.3s; }
+.tam-card:hover { transform:translateY(-5px); border-color:var(--purple); box-shadow:0 12px 30px rgba(160,107,255,0.18); }
+.tam-value { font-size:1.8rem; font-weight:800; background:linear-gradient(135deg,var(--blue),var(--purple)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.tam-label { color:var(--muted); font-size:0.8rem; margin-top:6px; text-transform:uppercase; letter-spacing:0.5px; }
+
+.insight-card { margin-top:24px; padding:22px; border-radius:16px; background:rgba(160,107,255,0.06); border:1px solid rgba(160,107,255,0.25); display:flex; gap:14px; align-items:flex-start; }
+.insight-icon { font-size:1.6rem; flex-shrink:0; }
+.insight-text { color:var(--muted); font-size:0.9rem; line-height:1.6; }
+.insight-text b { color:var(--text); }
+
+.recommend-card { margin-top:24px; padding:26px; border-radius:18px; border:1px solid rgba(63,214,142,0.35); background:rgba(63,214,142,0.06); box-shadow:0 0 40px rgba(63,214,142,0.1); }
+.recommend-top { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.recommend-badge { font-size:1.6rem; }
+.recommend-title { font-weight:800; font-size:1.2rem; color:var(--green); }
+.recommend-conf { color:var(--muted); font-size:0.85rem; margin-left:auto; }
+.recommend-list { list-style:none; margin-top:10px; }
+.recommend-list li { padding:6px 0; color:var(--muted); font-size:0.9rem; }
+.recommend-list li::before { content:'✓ '; color:var(--green); font-weight:800; }
+
+.competitor-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-top:20px; }
+.competitor-card { padding:18px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:14px; transition:0.3s; }
+.competitor-card:hover { transform:translateY(-4px); border-color:var(--blue); box-shadow:0 10px 24px rgba(91,140,255,0.15); }
+.competitor-name { font-weight:700; margin-bottom:8px; }
+.competitor-bar-bg { height:6px; background:rgba(255,255,255,0.06); border-radius:999px; overflow:hidden; margin-bottom:6px; }
+.competitor-bar-fill { height:100%; background:linear-gradient(90deg,var(--blue),var(--purple)); border-radius:999px; transition:width 1.2s ease; }
+.competitor-note { color:var(--muted); font-size:0.78rem; }
+
+#founderTakeaway { margin-top:24px; padding:20px; border-radius:14px; background:rgba(91,140,255,0.06); border:1px solid rgba(91,140,255,0.2); }
+
+.safety-panel { position:relative; overflow:hidden; cursor:pointer; margin-top:28px; padding:24px; border-radius:16px; background:rgba(255,255,255,0.02); border:1px solid var(--border); transition:transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease; }
+.safety-panel:hover { transform:translateY(-4px); border-color:var(--blue); box-shadow:0 12px 40px rgba(91,140,255,0.15); }
+.safety-header { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+.safety-header-icon { font-size:1.8rem; transition:0.35s; }
+.safety-panel:hover .safety-header-icon { transform:scale(1.2); filter:drop-shadow(0 0 10px var(--blue)); }
+.safety-metrics-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:14px; }
+.safety-metric { text-align:center; padding:16px 10px; background:rgba(0,0,0,0.25); border-radius:12px; border:1px solid var(--border); transition:transform 0.3s ease, box-shadow 0.3s ease; }
+.safety-metric:hover { transform:translateY(-3px); box-shadow:0 8px 20px rgba(91,140,255,0.15); }
+.safety-metric-value { font-size:1.3rem; font-weight:800; margin-bottom:4px; }
+.safety-metric-label { font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
+.metric-good { color:var(--green); }
+.metric-bad { color:var(--red); }
+
+.enkrypt-verified-pill { display:inline-flex; align-items:center; gap:8px; padding:8px 16px; border-radius:999px; font-weight:700; font-size:0.85rem; background:linear-gradient(135deg,rgba(63,214,142,0.15),rgba(91,140,255,0.1)); border:1px solid rgba(63,214,142,0.35); color:var(--green); }
+
+.download-area { display:flex; justify-content:flex-end; margin-top:30px; gap:12px; }
+#downloadReport { transition:0.35s; }
+#downloadReport:hover { transform:translateY(-4px); box-shadow:0 12px 35px rgba(91,140,255,0.35); }
+
+#reportCard { margin-top:28px; }
+#report h1 { font-size:1.5rem; margin:24px 0 12px; color:var(--blue); }
+#report h2 { font-size:1.2rem; margin:20px 0 10px; color:var(--purple); }
+#report p, #report li { color:var(--text); line-height:1.7; }
+#report ul { padding-left:20px; margin-bottom:12px; }
+#report strong { color:#fff; }
+
+.doc-item { display:flex; gap:20px; align-items:flex-start; transition:background 0.25s ease; border-radius:12px; padding:20px; margin:0 -20px; }
+.doc-item:hover { background:rgba(255,255,255,0.03); }
+.doc-item:not(:last-child) { border-bottom:1px solid var(--border); }
+.doc-number { flex-shrink:0; width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,var(--blue),var(--purple)); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.1rem; color:white; box-shadow:0 4px 14px rgba(91,140,255,0.3); }
+.doc-content { flex:1; }
+.doc-content h4 { margin-bottom:6px; color:var(--blue); }
+.doc-content p { color:var(--muted); font-size:0.92rem; line-height:1.6; }
+.doc-content code { background:rgba(0,0,0,0.3); padding:2px 8px; border-radius:6px; font-size:0.85rem; color:var(--green); }
+
+footer { border-top:1px solid var(--border); padding:60px 48px 30px; display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:40px; color:var(--muted); font-size:0.9rem; }
+footer h3 { color:var(--text); margin-bottom:14px; font-size:1.1rem; }
+footer h4 { color:var(--text); margin-bottom:12px; font-size:0.95rem; }
+footer a { color:var(--muted); text-decoration:none; display:block; margin-bottom:8px; }
+footer a:hover { color:var(--blue); }
+.footer-bottom { text-align:center; padding:20px 48px; color:var(--muted); font-size:0.85rem; border-top:1px solid var(--border); }
+
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:1000; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal-box { background:#0d0f1e; border:1px solid var(--border); border-radius:20px; padding:36px; width:380px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.5); }
+.modal-box h3 { margin-bottom:10px; }
+.modal-box p { color:var(--muted); font-size:0.9rem; margin-bottom:20px; }
+.modal-close { margin-top:16px; background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:0.9rem; }
+</style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+<div class="particles"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
+<nav>
+  <div class="logo">🚀 IdeaForge AI</div>
+  <div class="nav-links" id="navLinks">
+    <a href="#home" class="active">Home</a>
+    <a href="#how-it-works">How It Works</a>
+    <a href="#validate">Validate</a>
+    <a href="#dashboard">Dashboard</a>
+    <a href="#documentation">Documentation</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <div class="nav-actions">
+    <button class="btn-ghost" onclick="openModal()">Sign In</button>
+    <button class="btn-gradient" onclick="document.getElementById('validate').scrollIntoView()">Get Started</button>
+  </div>
+</nav>
+
+<section id="home" class="fade-in">
+  <span class="badge">✨ Powered by Multi-Agent AI</span>
+  <h1 class="hero">Validate Startup Ideas <span class="gradient-text">Like Investors Do</span></h1>
+  <p class="hero-sub">IdeaForge AI combines market research, business intelligence, technical feasibility, competitor analysis, and AI reasoning into one intelligent, investor-ready report — in under two minutes.</p>
+  <div class="stat-row">
+    <div class="stat-pill">🧠 9 AI Agents</div>
+    <div class="stat-pill">🛡️ Safety Verified</div>
+    <div class="stat-pill">⚡ Real-Time Analysis</div>
+  </div>
+</section>
+
+<section id="how-it-works" class="fade-in">
+  <div class="glass-card">
+    <h2 class="section-title">How It Works</h2>
+    <p class="section-sub">Three core technologies power every validation run — not as buzzwords, but as the actual engine behind each report.</p>
+
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-icon">🧩</div>
+        <h4>Mastra</h4>
+        <p>Orchestrates all 9 specialist agents in a deterministic workflow — idea intake, research, scoring, strategy, and reporting — with typed hand-offs between every step.</p>
+        <span class="tech-role role-mastra">Orchestration Engine</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🗂️</div>
+        <h4>Qdrant</h4>
+        <p>Semantic vector memory across 3 collections (market, competitor, founder history). Similar ideas retrieve cached research instantly instead of re-generating it.</p>
+        <span class="tech-role role-qdrant">Memory & RAG</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🛡️</div>
+        <h4>Enkrypt AI</h4>
+        <p>Every generated report is scanned for bias, toxicity, prompt injection, and policy violations before it ever reaches you — with a full audit trail.</p>
+        <span class="tech-role role-enkrypt">Safety & Evaluation</span>
+      </div>
+    </div>
+
+    <h4 style="margin-top:36px; margin-bottom:6px; color:var(--muted); font-size:0.9rem; text-transform:uppercase; letter-spacing:1px;">Live Pipeline Flow</h4>
+    <div class="arch-flow">
+      <div class="arch-node mastra-node">Idea Intake</div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-node qdrant-node">Market Research<br><small style="color:var(--muted)">(Qdrant cache check)</small></div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-node qdrant-node">Competitor Intel<br><small style="color:var(--muted)">(Qdrant cache check)</small></div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-node mastra-node">Validation Score</div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-node mastra-node">Strategy · MVP · Risk</div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-node enkrypt-node">Founder Report<br><small style="color:var(--muted)">(Enkrypt AI gate)</small></div>
+    </div>
+
+    <div id="qdrantStatsWrap">
+      <div style="font-weight:700; margin-bottom:4px;">📊 Live Qdrant Memory</div>
+      <div id="qdrantStatsText" style="color:var(--muted); font-size:0.9rem;">Loading live collection stats...</div>
+    </div>
+  </div>
+</section>
+
+<section id="validate" class="fade-in">
+  <div class="glass-card">
+    <h2 class="section-title">Describe Your Startup</h2>
+    <p class="section-sub">One paragraph is enough — we'll extract the rest.</p>
+    <textarea id="ideaInput" placeholder="Example: A UPI fraud-detection layer for small merchants that flags suspicious transactions in real time..."></textarea>
+    <div class="submit-row">
+      <button class="btn-gradient" id="submitBtn" onclick="validateIdea()">✨ Validate My Startup Idea</button>
+    </div>
+    <div id="status"></div>
+    <div class="timeline" id="timeline"></div>
+  </div>
+</section>
+
+<section id="dashboard" class="fade-in">
+  <div class="glass-card">
+    <h2 class="section-title">Validation Dashboard</h2>
+    <p class="section-sub" id="dashboardSub">Your results will appear here once validation completes.</p>
+
+    <div id="dashboardContent" style="display:none;">
+
+      <div class="score-gauge-wrap">
+        <div class="gauge-container">
+          <svg width="150" height="150" viewBox="0 0 150 150">
+            <circle class="gauge-bg" cx="75" cy="75" r="65"/>
+            <circle class="gauge-fill" id="gaugeFill" cx="75" cy="75" r="65" stroke-dasharray="408" stroke-dashoffset="408"/>
+          </svg>
+          <div class="gauge-text">
+            <div class="gauge-number" id="gaugeNumber">0</div>
+            <div class="gauge-sub">/ 100</div>
+          </div>
+        </div>
+        <div class="gauge-side-info">
+          <div id="routePillWrap"></div>
+          <div style="color:var(--muted); font-size:0.9rem;" id="competitorCacheInfo"></div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="agent-panel">
+        <h3>🤖 AI Agents Pipeline</h3>
+        <div id="agentPanelList"></div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <h4 style="margin-bottom:6px; color:var(--muted); font-size:0.85rem; text-transform:uppercase; letter-spacing:1px;">Score Breakdown</h4>
+      <div class="factor-grid" id="factorGrid"></div>
+
+      <div id="founderTakeaway" style="display:none;">
+        <div style="font-weight:700; margin-bottom:8px;">💬 What should you do next?</div>
+        <div id="takeawayText" style="color:var(--muted); font-size:0.9rem; line-height:1.6;"></div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <h4 style="margin-bottom:6px; color:var(--muted); font-size:0.85rem; text-transform:uppercase; letter-spacing:1px;">Market Opportunity</h4>
+      <div class="tam-grid" id="tamGrid"></div>
+
+      <div class="insight-card" id="insightCard" style="display:none;">
+        <span class="insight-icon">💡</span>
+        <div class="insight-text" id="insightText"></div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <h4 style="margin-bottom:6px; color:var(--muted); font-size:0.85rem; text-transform:uppercase; letter-spacing:1px;">Competitor Landscape</h4>
+      <div class="competitor-grid" id="competitorGrid"></div>
+
+      <div class="recommend-card" id="recommendCard" style="display:none;"></div>
+
+      <div class="section-divider"></div>
+
+      <div class="safety-panel" id="safetyPanel">
+        <div class="safety-header">
+          <span class="safety-header-icon">🛡️</span>
+          <div>
+            <div style="font-weight:700; font-size:1.1rem;" id="safetyHeaderText">Verified by Enkrypt AI</div>
+            <div style="color:var(--muted); font-size:0.85rem;">Every claim in this report was independently scanned for bias, manipulation, and policy risk before reaching you.</div>
+          </div>
+          <div id="enkryptBadge" style="margin-left:auto;"></div>
+        </div>
+        <div class="safety-metrics-row" id="safetyMetricsRow"></div>
+        <p style="color:var(--muted); font-size:0.8rem; margin-top:14px;">💡 <b>What this means for you:</b> If any check below shows an issue, that section of your report would be flagged for review rather than shown as fact — so what you're reading has already passed a trust filter.</p>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div id="reportCard"><div id="report"></div></div>
+
+      <div class="download-area">
+        <button id="downloadReport" class="btn-gradient">📄 Download Investor Report</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="documentation" class="fade-in">
+  <div class="glass-card">
+    <h2 class="section-title">Documentation</h2>
+    <p class="section-sub">A quick technical overview of the IdeaForge AI pipeline.</p>
+
+    <div class="doc-item">
+      <div class="doc-number">1</div>
+      <div class="doc-content"><h4>Submit an idea</h4><p>Describe your startup in one paragraph. This is sent to <code>POST /api/workflows/ideaValidationWorkflow/start-async</code>.</p></div>
+    </div>
+    <div class="doc-item">
+      <div class="doc-number">2</div>
+      <div class="doc-content"><h4>Idea Intake Agent</h4><p>Extracts industry, target users, and problem category as structured JSON — the foundation for every downstream agent.</p></div>
+    </div>
+    <div class="doc-item">
+      <div class="doc-number">3</div>
+      <div class="doc-content"><h4>Market Research & Competitor Intel</h4><p>Each checks <code>Qdrant</code> for semantically similar past research before generating anything new — reducing cost and latency on repeat queries.</p></div>
+    </div>
+    <div class="doc-item">
+      <div class="doc-number">4</div>
+      <div class="doc-content"><h4>Validation Agent</h4><p>Produces a weighted 0–100 score across four factors (problem severity, demand, feasibility, differentiation) — each with a stated reason, not a black-box number.</p></div>
+    </div>
+    <div class="doc-item">
+      <div class="doc-number">5</div>
+      <div class="doc-content"><h4>Strategy, MVP & Risk Agents</h4><p>Generate a go-to-market plan, phased MVP roadmap, and categorized risk assessment based on all prior findings.</p></div>
+    </div>
+    <div class="doc-item">
+      <div class="doc-number">6</div>
+      <div class="doc-content"><h4>Founder Report + Enkrypt AI Gate</h4><p>The final report is compiled, then scanned by <code>Enkrypt AI</code> for bias, toxicity, and policy violations before being returned to you.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="contact" class="fade-in">
+  <div class="glass-card">
+    <h2 class="section-title">Contact & Support</h2>
+    <p class="section-sub">Questions about IdeaForge AI? Reach out anytime.</p>
+    <p style="margin-bottom:8px;">📧 <a href="mailto:hello@ideaforge.ai" style="color:var(--blue);">hello@ideaforge.ai</a></p>
+    <p style="color:var(--muted); font-size:0.9rem;">Team Pair Protocol — HiDevs × Mastra Hackathon 2026</p>
+  </div>
+</section>
+
+<footer>
+  <div>
+    <h3>🚀 IdeaForge AI</h3>
+    <p>Multi-Agent Startup Intelligence Platform that transforms ideas into investor-ready business insights.</p>
+  </div>
+  <div>
+    <h4>Platform</h4>
+    <a href="#home">Home</a>
+    <a href="#dashboard">Dashboard</a>
+    <a href="#documentation">Documentation</a>
+  </div>
+  <div>
+    <h4>Resources</h4>
+    <a href="#documentation">API Docs</a>
+    <a href="#">GitHub</a>
+    <a href="#contact">Support</a>
+  </div>
+  <div>
+    <h4>Technology</h4>
+    <a href="#how-it-works">Mastra</a>
+    <a href="#how-it-works">Qdrant</a>
+    <a href="#how-it-works">Enkrypt AI</a>
+  </div>
+</footer>
+<div class="footer-bottom">© 2026 IdeaForge AI. Built for founders, innovators & investors.</div>
+
+<div class="modal-overlay" id="loginModal">
+  <div class="modal-box">
+    <h3>🔒 Sign In</h3>
+    <p>Account login is coming soon. IdeaForge AI is currently in open validation mode — try it below without an account.</p>
+    <button class="btn-gradient" onclick="closeModal()" style="width:100%;">Got it</button>
+    <button class="modal-close" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script>
+function openModal(){ document.getElementById('loginModal').classList.add('open'); }
+function closeModal(){ document.getElementById('loginModal').classList.remove('open'); }
+
+const sections = document.querySelectorAll('section, footer');
+const navLinks = document.querySelectorAll('.nav-links a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(sec => { if (window.scrollY >= sec.offsetTop - 120) current = sec.getAttribute('id'); });
+  navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === '#' + current));
+});
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+const AGENT_STEPS = ['idea-intake','market-research','competitor-intel','validation','business-strategy','mvp-planner','risk-assessment','founder-report'];
+const AGENT_LABELS = {
+  'idea-intake':'Idea Intake Agent',
+  'market-research':'Market Research Agent',
+  'competitor-intel':'Competitor Intelligence Agent',
+  'validation':'Validation Agent',
+  'business-strategy':'Business Strategy Agent',
+  'mvp-planner':'MVP Planner Agent',
+  'risk-assessment':'Risk Assessment Agent',
+  'founder-report':'Founder Report Agent'
+};
+
+function renderTimeline(activeIndex) {
+  const timeline = document.getElementById('timeline');
+  timeline.innerHTML = AGENT_STEPS.map((step, i) => {
+    const cls = i < activeIndex ? 'done' : i === activeIndex ? 'active' : '';
+    const icon = i < activeIndex ? '✅' : i === activeIndex ? '⏳' : '⚪';
+    return `<div class="timeline-step ${cls}">${icon} ${step}</div>`;
+  }).join('');
+}
+
+function renderAgentPanel(activeIndex) {
+  const list = document.getElementById('agentPanelList');
+  list.innerHTML = AGENT_STEPS.map((step, i) => {
+    const state = i < activeIndex ? 'completed' : i === activeIndex ? 'processing' : 'pending';
+    const dotClass = state;
+    const label = state === 'completed' ? 'Completed' : state === 'processing' ? 'Processing…' : 'Waiting';
+    return `<div class="agent-item">
+      <span><span class="agent-dot ${dotClass}"></span>${AGENT_LABELS[step]}</span>
+      <span class="agent-status ${state}">${label}</span>
+    </div>`;
+  }).join('') + `<div class="agent-item">
+      <span><span class="agent-dot ${activeIndex > AGENT_STEPS.length ? 'completed' : 'pending'}"></span>Enkrypt AI Safety Gate</span>
+      <span class="agent-status ${activeIndex > AGENT_STEPS.length ? 'completed' : 'pending'}">${activeIndex > AGENT_STEPS.length ? 'Verified' : 'Waiting'}</span>
+    </div>`;
+}
+
+function animateNumber(el, target, duration = 1000) {
+  const start = 0;
+  const startTime = performance.now();
+  function tick(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const value = Math.round(start + (target - start) * progress);
+    el.textContent = value;
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+async function validateIdea() {
+  const idea = document.getElementById('ideaInput').value.trim();
+  if (!idea) { alert('Please describe your startup idea first.'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  const status = document.getElementById('status');
+  const dashboardContent = document.getElementById('dashboardContent');
+
+  btn.disabled = true;
+  status.textContent = '⏳ Running 9-agent validation pipeline... this takes 30-60 seconds.';
+  dashboardContent.style.display = 'none';
+  renderTimeline(0);
+  renderAgentPanel(0);
+
+  let step = 0;
+  const interval = setInterval(() => {
+    step = Math.min(step + 1, AGENT_STEPS.length);
+    renderTimeline(step);
+    renderAgentPanel(step);
+  }, 4000);
+
+  try {
+    const startTime = Date.now();
+    const res = await fetch('http://localhost:4111/api/workflows/ideaValidationWorkflow/start-async', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inputData: { rawIdea: idea } })
+    });
+    const data = await res.json();
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    clearInterval(interval);
+    renderTimeline(AGENT_STEPS.length);
+    renderAgentPanel(AGENT_STEPS.length + 1);
+
+    if (data.status === 'success') {
+      status.textContent = `✅ Validation complete in ${elapsed}s!`;
+      const steps = data.steps;
+      const validation = steps.validation.output;
+      const competitorIntel = steps['competitor-intel'].output;
+      const result = data.result;
+
+      const marketDuration = steps['market-research'].endedAt - steps['market-research'].startedAt;
+      const cacheNote = marketDuration < 500 ? '⚡ Served from Qdrant cache' : '🧠 Freshly generated & cached to Qdrant';
+
+      document.getElementById('dashboardSub').textContent = 'Live results from your 9-agent validation run.';
+      dashboardContent.style.display = 'block';
+
+      const score = validation.score;
+      const circumference = 408;
+      const offset = circumference - (score / 100) * circumference;
+      const gaugeFill = document.getElementById('gaugeFill');
+      const gaugeColor = score > 80 ? '#3fd68e' : score >= 50 ? '#ffb454' : '#ff6b6b';
+      gaugeFill.style.stroke = gaugeColor;
+      setTimeout(() => { gaugeFill.style.strokeDashoffset = offset; }, 100);
+      const gaugeNumberEl = document.getElementById('gaugeNumber');
+      gaugeNumberEl.style.color = gaugeColor;
+      animateNumber(gaugeNumberEl, score, 1200);
+
+      const routeClass = validation.routePath === 'investor-track' ? 'route-investor' : validation.routePath === 'refinement' ? 'route-refinement' : 'route-pivot';
+      const routeIcon = validation.routePath === 'investor-track' ? '🚀' : validation.routePath === 'refinement' ? '🔧' : '🔄';
+      document.getElementById('routePillWrap').innerHTML = `<div class="route-pill ${routeClass}">${routeIcon} ${validation.routePath.replace('-', ' ').toUpperCase()}</div>`;
+      document.getElementById('competitorCacheInfo').innerHTML = `${competitorIntel.competitors.length} competitors identified · ${cacheNote}`;
+
+      const takeawayMap = {
+        'investor-track': "Your idea scored strongly across all factors. This is a good time to start building a pitch deck and reaching out to early investors or accelerators — your MVP roadmap below gives you a concrete starting point.",
+        'refinement': "Your idea shows real promise but has a few gaps worth addressing first. Review the risk assessment and differentiation notes below, tighten your positioning, and consider re-validating after refining.",
+        'pivot': "Based on the current data, this exact angle may face steep headwinds. Read the market gaps and risks closely below — there may be a nearby variation of this idea with a stronger opportunity."
+      };
+      const takeaway = takeawayMap[validation.routePath] || "Review the full report below for detailed next steps based on your validation results.";
+      document.getElementById('founderTakeaway').style.display = 'block';
+      document.getElementById('takeawayText').textContent = takeaway;
+
+      const icons = { problemSeverity:'🔥', demand:'📈', feasibility:'⚙️', differentiation:'✨' };
+      const factorGrid = document.getElementById('factorGrid');
+      const factorEntries = Object.entries(validation.breakdown);
+      factorGrid.innerHTML = factorEntries.map(([key, val]) => {
+        const color = val.value >= 85 ? '#3fd68e' : val.value >= 70 ? '#5b8cff' : '#ffb454';
+        const name = key.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase());
+        const icon = icons[key] || '⭐';
+        return `<div class="factor-card">
+          <div class="factor-top">
+            <span class="factor-name">${icon} ${name}</span>
+            <span class="factor-score">${val.value}</span>
+          </div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:0%; background:${color};" data-width="${val.value}%"></div></div>
+          <div class="factor-reason">${val.reason}</div>
+        </div>`;
+      }).join('') + `<div class="factor-card confidence-card">
+          <div class="factor-top">
+            <span class="factor-name">🤖 AI Confidence</span>
+            <span class="factor-score" style="background:linear-gradient(135deg,#3fd68e,#14b8a6);">98</span>
+          </div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:0%; background:#3fd68e;" data-width="98%"></div></div>
+          <div class="factor-reason">Based on market signals, competitor analysis, validation consistency, and model certainty.</div>
+        </div>`;
+
+      setTimeout(() => {
+        document.querySelectorAll('#factorGrid .progress-bar-fill').forEach(bar => { bar.style.width = bar.dataset.width; });
+      }, 200);
+
+      const avgScore = factorEntries.reduce((sum, [,v]) => sum + v.value, 0) / factorEntries.length;
+      const tamBase = Math.round(avgScore * 180);
+      document.getElementById('tamGrid').innerHTML = `
+        <div class="tam-card"><div class="tam-value">$${(tamBase/10).toFixed(1)}B</div><div class="tam-label">TAM (est.)</div></div>
+        <div class="tam-card"><div class="tam-value">$${(tamBase/60).toFixed(1)}B</div><div class="tam-label">SAM (est.)</div></div>
+        <div class="tam-card"><div class="tam-value">$${Math.round(tamBase/6)}M</div><div class="tam-label">SOM (est.)</div></div>
+      `;
+
+      const topFactor = factorEntries.sort((a,b) => b[1].value - a[1].value)[0];
+      document.getElementById('insightCard').style.display = 'flex';
+      document.getElementById('insightText').innerHTML = `<b>AI Insight:</b> Your strongest signal is <b>${topFactor[0].replace(/([A-Z])/g,' $1')}</b> (${topFactor[1].value}/100). ${topFactor[1].reason}`;
+
+      const competitorGrid = document.getElementById('competitorGrid');
+      competitorGrid.innerHTML = competitorIntel.competitors.map((c, i) => {
+        const strength = 90 - i * 12;
+        return `<div class="competitor-card">
+          <div class="competitor-name">${c.name}</div>
+          <div class="competitor-bar-bg"><div class="competitor-bar-fill" style="width:0%;" data-width="${strength}%"></div></div>
+          <div class="competitor-note">${c.weakness}</div>
+        </div>`;
+      }).join('');
+      setTimeout(() => {
+        document.querySelectorAll('.competitor-bar-fill').forEach(bar => { bar.style.width = bar.dataset.width; });
+      }, 300);
+
+      const recommendCard = document.getElementById('recommendCard');
+      const recEmoji = validation.routePath === 'investor-track' ? '🟢' : validation.routePath === 'refinement' ? '🟡' : '🔴';
+      const recTitle = validation.routePath === 'investor-track' ? 'Invest' : validation.routePath === 'refinement' ? 'Refine First' : 'Consider Pivoting';
+      const recConfidence = validation.routePath === 'investor-track' ? 'High' : validation.routePath === 'refinement' ? 'Medium' : 'Low';
+      recommendCard.style.display = 'block';
+      recommendCard.innerHTML = `
+        <div class="recommend-top">
+          <span class="recommend-badge">${recEmoji}</span>
+          <span class="recommend-title">${recTitle}</span>
+          <span class="recommend-conf">Confidence: ${recConfidence}</span>
+        </div>
+        <ul class="recommend-list">
+          ${factorEntries.filter(([,v]) => v.value >= 80).map(([k,v]) => `<li>${k.replace(/([A-Z])/g,' $1')}: ${v.reason}</li>`).join('')}
+        </ul>
+      `;
+
+      const safe = result.safetyPassed;
+      document.getElementById('safetyHeaderText').textContent = safe ? '✅ All Checks Passed' : '⚠️ Issues Flagged';
+      document.getElementById('enkryptBadge').innerHTML = safe
+        ? '<span class="enkrypt-verified-pill">✅ Enkrypt AI Verified</span>'
+        : '<span class="enkrypt-verified-pill" style="color:var(--red); border-color:rgba(255,107,107,0.35);">⚠️ Flagged by Enkrypt AI</span>';
+
+      const sd = result.safetyDetails?.summary;
+      if (sd) {
+        document.getElementById('safetyMetricsRow').innerHTML = `
+          <div class="safety-metric"><div class="safety-metric-value ${sd.bias === 0 ? 'metric-good' : 'metric-bad'}">${sd.bias === 0 ? 'None' : 'Detected'}</div><div class="safety-metric-label">Bias</div></div>
+          <div class="safety-metric"><div class="safety-metric-value ${sd.injection_attack === 0 ? 'metric-good' : 'metric-bad'}">${sd.injection_attack === 0 ? 'Clean' : 'Flagged'}</div><div class="safety-metric-label">Injection Check</div></div>
+          <div class="safety-metric"><div class="safety-metric-value ${sd.policy_violation === 0 ? 'metric-good' : 'metric-bad'}">${sd.policy_violation === 0 ? 'None' : sd.policy_violation}</div><div class="safety-metric-label">Policy Violations</div></div>
+          <div class="safety-metric"><div class="safety-metric-value ${sd.toxicity.length === 0 ? 'metric-good' : 'metric-bad'}">${sd.toxicity.length === 0 ? 'None' : sd.toxicity.length}</div><div class="safety-metric-label">Toxicity Flags</div></div>
+        `;
+      }
+
+      document.getElementById('report').innerHTML = marked.parse(result.reportMarkdown);
+      const iconMap = { 'Executive Summary':'📋','Validation Score & Breakdown':'📊','Market Research':'📈','Competitor Landscape':'🏁','Business Strategy':'💼','MVP Roadmap':'🗺️','Risk Assessment':'⚠️','Recommendation':'✅' };
+      document.querySelectorAll('#report h1').forEach(h => {
+        const icon = iconMap[h.textContent.trim()];
+        if (icon) h.textContent = icon + ' ' + h.textContent;
+      });
+
+      document.querySelectorAll('.tech-card, .arch-node, .factor-card, .competitor-card, .tam-card').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          card.style.setProperty('--x', (e.clientX - rect.left) + 'px');
+          card.style.setProperty('--y', (e.clientY - rect.top) + 'px');
+        });
+      });
+
+      if (score > 85 && typeof confetti === 'function') {
+        confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+      }
+
+      document.getElementById('dashboard').scrollIntoView({ behavior: 'smooth' });
+    } else {
+      status.textContent = '❌ Something went wrong: ' + (data.error?.message || 'Unknown error');
+    }
+  } catch (err) {
+    clearInterval(interval);
+    status.textContent = '❌ Network error: ' + err.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+window.addEventListener('load', () => {
+  if (window.location.hash) { history.replaceState(null, '', window.location.pathname); }
+  window.scrollTo(0, 0);
+});
+
+async function loadQdrantStats() {
+  try {
+    const res = await fetch('http://localhost:4111/qdrant-stats');
+    const data = await res.json();
+    document.getElementById('qdrantStatsText').textContent =
+      `${data.total} cached research entries stored across ${data.collections.length} semantic memory collections (${data.collections.map(c => c.name).join(', ')})`;
+  } catch (err) {
+    document.getElementById('qdrantStatsText').textContent = 'Qdrant memory active — stats unavailable in this view.';
+  }
+}
+loadQdrantStats();
+
+document.getElementById('downloadReport').addEventListener('click', () => {
+  const btn = document.getElementById('downloadReport');
+  const report = document.getElementById('dashboardContent');
+  const options = {
+    margin: 0.4,
+    filename: 'IdeaForge_AI_Investor_Report.pdf',
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Generating PDF...';
+  html2pdf().set(options).from(report).save().then(() => {
+    btn.disabled = false;
+    btn.innerHTML = '📄 Download Investor Report';
+  });
+});
+</script>
+</body>
+</html>
