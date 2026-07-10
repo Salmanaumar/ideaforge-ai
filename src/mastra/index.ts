@@ -1,4 +1,3 @@
-
 import { Mastra } from '@mastra/core/mastra';
 import { PinoLogger } from '@mastra/loggers';
 import { LibSQLStore } from '@mastra/libsql';
@@ -19,14 +18,13 @@ import { founderReportAgent } from './agents/founder-report-agent';
 import { ideaValidationWorkflow } from './workflows/idea-validation-workflow';
 import { getQdrantStats } from './tools/qdrant-stats';
 import { registerApiRoute } from '@mastra/core/server';
-
+import { isRateLimited } from './tools/rate-limiter';
 
 export const mastra: Mastra = await (async () => {
   const observabilityStore = await new DuckDBStore().getStore('observability');
-
   return new Mastra({
     workflows: { weatherWorkflow, ideaValidationWorkflow },
-    agents: { weatherAgent, ideaIntakeAgent, marketResearchAgent ,competitorIntelAgent, validationAgent, businessStrategyAgent, mvpPlannerAgent, riskAssessmentAgent, founderReportAgent },
+    agents: { weatherAgent, ideaIntakeAgent, marketResearchAgent, competitorIntelAgent, validationAgent, businessStrategyAgent, mvpPlannerAgent, riskAssessmentAgent, founderReportAgent },
     scorers: { toolCallAppropriatenessScorer, completenessScorer, translationScorer },
     storage: new MastraCompositeStore({
       id: 'composite-storage',
@@ -42,30 +40,35 @@ export const mastra: Mastra = await (async () => {
       name: 'Mastra',
       level: 'info',
     }),
+    // @ts-ignore — Mastra type definitions mismatch in this scaffold version (flush signature), does not affect runtime
     observability: new Observability({
       configs: {
         default: {
           serviceName: 'mastra',
           exporters: [
-            new MastraStorageExporter(), // Persists observability events to Mastra Storage
-            new MastraPlatformExporter(), // Sends observability events to Mastra Platform (if MASTRA_PLATFORM_ACCESS_TOKEN is set)
+            new MastraStorageExporter(),
+            new MastraPlatformExporter(),
           ],
           spanOutputProcessors: [
-            new SensitiveDataFilter(), // Redacts sensitive data like passwords, tokens, keys
+            new SensitiveDataFilter(),
           ],
         },
       },
     }),
     server: {
-  apiRoutes: [
-    registerApiRoute('/qdrant-stats', {
-      method: 'GET',
-      handler: async (c: any) => {
-        const stats = await getQdrantStats()
-        return c.json(stats)
-      },
-    }),
-  ],
-},
+      apiRoutes: [
+        registerApiRoute('/qdrant-stats', {
+          method: 'GET',
+          handler: async (c: any) => {
+            const identifier = c.req.header('x-forwarded-for') || 'anonymous';
+            if (isRateLimited(identifier)) {
+              return c.json({ error: 'Rate limit exceeded. Try again in a minute.' }, 429);
+            }
+            const stats = await getQdrantStats();
+            return c.json(stats);
+          },
+        }),
+      ],
+    },
   });
 })();
