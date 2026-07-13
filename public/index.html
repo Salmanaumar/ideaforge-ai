@@ -1829,7 +1829,7 @@
 
       try {
         const startTime = Date.now();
-        const res = await fetch('http://localhost:4111/api/workflows/ideaValidationWorkflow/start-async', {
+        const res = await fetch('https://ideaforge-ai-0sbb.onrender.com/api/workflows/ideaValidationWorkflow/start-async', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ inputData: { rawIdea: idea } })
@@ -2001,7 +2001,7 @@
 
     async function loadQdrantStats() {
       try {
-        const res = await fetch('http://localhost:4111/qdrant-stats');
+        const res = await fetch('https://ideaforge-ai-0sbb.onrender.com/qdrant-stats');
         const data = await res.json();
         document.getElementById('qdrantStatsText').textContent =
           `${data.total} cached research entries stored across ${data.collections.length} semantic memory collections (${data.collections.map(c => c.name).join(', ')})`;
