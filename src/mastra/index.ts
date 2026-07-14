@@ -29,9 +29,7 @@ export const mastra = new Mastra({
       id: "mastra-storage",
       url: "file:./mastra.db",
     }),
-    domains: {
-      observability: new MastraStorageExporter(),
-    }
+    domains: {}
   }),
   logger: new PinoLogger({
     name: 'Mastra',
