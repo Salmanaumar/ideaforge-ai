@@ -1,6 +1,6 @@
 import { qdrant } from './qdrant-client'
 
-const EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2'
+const EMBEDDING_MODEL = 'sentence-transformers/all-minilm-l6-v2'
 
 export async function storeMemory(
   collectionName: string,
