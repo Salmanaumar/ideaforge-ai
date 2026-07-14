@@ -20,8 +20,13 @@ export const marketResearchStep = createStep({
         const { industry, problemCategory } = inputData
         const query = `${industry} ${problemCategory}`
 
-        // Step A: check Qdrant cache first
-        const cached = await searchMemory('market_cache', query, 1)
+        let cached: any[] = []
+        try {
+            cached = await searchMemory('market_cache', query, 1)
+        } catch (err: any) {
+            console.error('searchMemory failed:', err.message, err.cause)
+            cached = []
+        }
 
         if (cached.length > 0 && cached[0].score > 0.75) {
             const payload = cached[0].payload as any
@@ -34,19 +39,28 @@ export const marketResearchStep = createStep({
             }
         }
 
-        // Step B: nothing good cached, generate fresh research
         const agent = mastra.getAgentById('market-research-agent' as any)
-        const response = await agent.generate(
-            `Industry: "${industry}", Problem: "${problemCategory}"`
-        )
+        let response
+        try {
+            response = await agent.generate(
+                `Industry: "${industry}", Problem: "${problemCategory}"`
+            )
+        } catch (err: any) {
+            console.error('agent.generate failed:', err.message, err.cause)
+            throw err
+        }
+
         const result = JSON.parse(response.text)
 
-        // Step C: store it in Qdrant for next time
-        await storeMemory('market_cache', Date.now(), query, {
-            industry,
-            problemCategory,
-            ...result,
-        })
+        try {
+            await storeMemory('market_cache', Date.now(), query, {
+                industry,
+                problemCategory,
+                ...result,
+            })
+        } catch (err: any) {
+            console.error('storeMemory failed:', err.message, err.cause)
+        }
 
         return { ...result, source: 'fresh' as const }
     },
