@@ -51,11 +51,16 @@ export const mastra = new Mastra({
     },
   }),
   server: {
+  cors: {
+    origin: ['https://celebrated-semolina-4e978f.netlify.app', 'http://localhost:4111'],
+    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    allowHeaders: ['Content-Type'],
+  },
     apiRoutes: [
       registerApiRoute('/qdrant-stats', {
         method: 'GET',
         handler: async (c: any) => {
-          const identifier = c.req.header('x-forwarded-for') || 'anonymous';
+          const identifier = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || 'anonymous';
           if (isRateLimited(identifier)) {
             return c.json({ error: 'Rate limit exceeded. Try again in a minute.' }, 429);
           }
